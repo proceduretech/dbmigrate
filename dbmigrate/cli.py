@@ -59,30 +59,6 @@ def read_all_tenant_db_creds():
     return tenant_db_creds
 
 
-@click.command()
-@click.option('--name', default=None,
-              help="Give short name (space, or underscore separated) for the migration file to be generated, "
-                   "while using 'touch' command")
-@click.argument('command')
-def test(name, command):
-    if command == "touch":
-        if not name:
-            click.echo("Please pass a short name for migration file to be generated")
-            exit(1)
-        migration_description = "_".join(name)
-        MigrationDirectory.create_blank_migration_file(migration_description)
-
-    elif command == "init":
-        Database.init_migration(tenant_db_creds=read_all_tenant_db_creds())
-
-    elif command in ("upgrade", "downgrade"):
-        Database.run_migrations(command, tenant_db_creds=read_all_tenant_db_creds())
-
-    else:
-        click.echo("Invalid command passed")
-        exit(1)
-
-
 @click.group()
 @click.pass_context
 def main(ctx):
