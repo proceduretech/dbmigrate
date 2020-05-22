@@ -2,6 +2,7 @@
 import os
 import sys
 
+import click
 import psycopg2
 
 from dbmigrate.database import Database
@@ -58,19 +59,17 @@ def read_all_tenant_db_creds():
     return tenant_db_creds
 
 
-def dump_schema(database_uri):
-    dump_schema_command = "pg_dump --format=plain --encoding=UTF8 --schema-only --no-privileges --no-owner"
-
-
-if __name__ == '__main__':
-    command = sys.argv[1]
-
+@click.command()
+@click.option('--name', default=None,
+              help="Give short name (space, or underscore separated) for the migration file to be generated, "
+                   "while using 'touch' command")
+@click.argument('command')
+def test(name, command):
     if command == "touch":
-        if len(sys.argv) < 3:
-            print("Please pass a short name for migration file to generate")
+        if not name:
+            click.echo("Please pass a short name for migration file to be generated")
             exit(1)
-        migration_description = sys.argv[2:]
-        migration_description = "_".join(migration_description)
+        migration_description = "_".join(name)
         MigrationDirectory.create_blank_migration_file(migration_description)
 
     elif command == "init":
@@ -80,5 +79,42 @@ if __name__ == '__main__':
         Database.run_migrations(command, tenant_db_creds=read_all_tenant_db_creds())
 
     else:
-        print("Invalid command passed")
+        click.echo("Invalid command passed")
         exit(1)
+
+
+@click.group()
+@click.pass_context
+def main():
+    pass
+
+
+@main.command()
+@click.option('--name', default=None,
+              help="Give short name (space, or underscore separated) for the migration file to be generated, "
+                   "while using 'touch' command")
+def touch(name):
+    """Creates a blank migration file using the provided name"""
+    if not name:
+        click.echo("Please pass a short name for migration file to be generated")
+        exit(1)
+    migration_description = "_".join(name)
+    MigrationDirectory.create_blank_migration_file(migration_description)
+
+
+@main.command()
+def init():
+    """Initializes migration table on one or more databases, if not already there."""
+    Database.init_migration(tenant_db_creds=read_all_tenant_db_creds())
+
+
+@main.command()
+def upgrade():
+    """Run database upgrade, and apply next chain of un-applied migrations"""
+    Database.run_migrations('upgrade', tenant_db_creds=read_all_tenant_db_creds())
+
+
+@main.command()
+def downgrade():
+    """Rollbacks the last applied migrations"""
+    Database.run_migrations('downgrade', tenant_db_creds=read_all_tenant_db_creds())
