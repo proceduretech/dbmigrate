@@ -94,7 +94,7 @@ def main():
               help="Give short name (space, or underscore separated) for the migration file to be generated, "
                    "while using 'touch' command")
 def touch(name):
-    """Creates a blank migration file using the provided name"""
+    """Creates a blank migration file"""
     if not name:
         click.echo("Please pass a short name for migration file to be generated")
         exit(1)
@@ -104,13 +104,13 @@ def touch(name):
 
 @main.command()
 def init():
-    """Initializes migration table on one or more databases, if not already there."""
+    """Initializes migration table on database"""
     Database.init_migration(tenant_db_creds=read_all_tenant_db_creds())
 
 
 @main.command()
 def upgrade():
-    """Run database upgrade, and apply next chain of un-applied migrations"""
+    """Apply remaining un-applied forward migrations"""
     Database.run_migrations('upgrade', tenant_db_creds=read_all_tenant_db_creds())
 
 
