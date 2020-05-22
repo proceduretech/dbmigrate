@@ -43,6 +43,7 @@ def read_all_tenant_db_creds():
     try:
         with conn:
             with conn.cursor() as cursor:
+                # TODO: Provide a way to inject tenant_database credentials from other sources
                 cursor.execute(
                     "SELECT db_user, db_password, db_host, db_port, db_name, db_schema FROM tenant_db_config WHERE "
                     "user_type='admin';")

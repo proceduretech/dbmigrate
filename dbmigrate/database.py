@@ -8,15 +8,26 @@ from dbmigrate.migration_file import MigrationFile
 
 class Database(object):
     @staticmethod
-    def init_migration(tenant_db_creds):
+    def new_connection(database_uri, schema):
+        if schema:
+            conn = psycopg2.connect(dsn=database_uri, options="-c search_path={0}".format(schema))
+        else:
+            conn = psycopg2.connect(dsn=database_uri)
+        return conn
+
+    @classmethod
+    def init_migration(cls, tenant_db_creds):
         CREATE_MIGRATIONS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS migrations (
         version character varying not null,
         applied_at timestamp with time zone not null);"""
 
         for tenant_db_cred in tenant_db_creds:
             database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % tenant_db_cred
-            print("Running init_migration on database: %s" % database_uri)
-            conn = psycopg2.connect(dsn=database_uri)
+            schema = tenant_db_cred.get('db_schema')
+
+            print("Running init_migration on database: %s, and schema: %s" % (database_uri, schema))
+
+            conn = cls.new_connection(database_uri, schema)
             try:
                 with conn:
                     with conn.cursor() as cursor:
@@ -24,10 +35,11 @@ class Database(object):
             finally:
                 conn.close()
 
-    @staticmethod
-    def fetch_last_applied_migration(database_uri):
+    @classmethod
+    def fetch_last_applied_migration(cls, database_uri, schema):
         FETCH_LAST_MIGRATION_QUERY = "SELECT version FROM migrations ORDER BY applied_at DESC LIMIT 1;"
-        conn = psycopg2.connect(dsn=database_uri)
+
+        conn = cls.new_connection(database_uri, schema)
         try:
             with conn:
                 with conn.cursor() as cursor:
@@ -41,16 +53,17 @@ class Database(object):
     def run_migrations(cls, migration_direction, tenant_db_creds):
         for tenant_db_cred in tenant_db_creds:
             database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % tenant_db_cred
+            schema = tenant_db_cred.get('db_schema')
 
-            last_version = cls.fetch_last_applied_migration(database_uri)
+            last_version = cls.fetch_last_applied_migration(database_uri, schema)
             graph = MigrationDirectory.prepare_migration_graph_to_apply(last_version)
             if not graph:
                 print("Nothing to migrate")
                 continue
 
-            print("Running migration on database: %s" % database_uri)
-            # conn = psycopg2.connect(dsn=os.environ.get("DATABASE_URL"), options=f'-c search_path={schema}')
-            conn = psycopg2.connect(dsn=database_uri)
+            print("Running migration on database: %s, and schema: %s" % (database_uri, schema))
+
+            conn = cls.new_connection(database_uri, schema)
 
             try:
                 for revision in graph:
