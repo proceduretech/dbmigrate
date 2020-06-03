@@ -3,6 +3,7 @@ import os
 from dbmigrate.migration_file import MigrationFile
 
 migrations_directory = 'db_migrations/versions/'
+schema_file_directory = 'db_migrations/'
 
 
 class MigrationDirectory(object):
@@ -44,6 +45,11 @@ class MigrationDirectory(object):
     @staticmethod
     def get_migration_file_path(migration_file_name):
         file_path = os.path.join(migrations_directory, '{0}.sql'.format(migration_file_name))
+        return file_path
+
+    @staticmethod
+    def get_schema_file_path(schema_file_name):
+        file_path = os.path.join(schema_file_directory, '{0}.sql'.format(schema_file_name))
         return file_path
 
     @classmethod

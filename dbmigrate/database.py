@@ -129,11 +129,11 @@ class Database(object):
 
     @staticmethod
     def dump(database_uri, db_schema):
-        schema_file_path = MigrationDirectory.get_migration_file_path('schema')
+        schema_file_path = MigrationDirectory.get_schema_file_path('schema')
 
         process = subprocess.Popen(
-            ["pg_dump", "--format=plain", "--encoding=UTF8", "--schema-only", "--no-privileges", "--no-owner",
-             "-n", db_schema, "-f", schema_file_path, database_uri],
+            ["pg_dump", "--format=plain", "--encoding=UTF8", "--schema-only", "--no-privileges",
+             "--no-owner", "-n", db_schema, "-f", schema_file_path, database_uri],
             stdout=subprocess.PIPE, universal_newlines=True)
 
         output = process.communicate()[0]
