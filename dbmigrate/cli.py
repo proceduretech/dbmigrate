@@ -36,6 +36,22 @@ develop branch, before generating migration. Or even better would be to generate
 """
 
 
+def create_db_uri(db_creds):
+    database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % db_creds
+    return database_uri
+
+
+def format_database_uris(db_creds):
+    database_uris = [(db_cred['db_schema'], db_cred['database_uri'])
+                     if 'database_uri' in db_cred else (db_cred['db_schema'], create_db_uri(db_cred))
+                     for db_cred in db_creds]
+
+    database_uris = [("DB Schema", "Database URI"), ("=" * 9, "=" * 12)] + database_uris
+
+    db_uris = ["{:<20}{:<50}".format(*db_uri) for db_uri in database_uris]
+    return "\n".join(db_uris)
+
+
 def read_all_db_creds():
     all_db_creds = []
 
@@ -88,13 +104,21 @@ def init():
 @main.command()
 def upgrade():
     """Apply remaining un-applied forward migrations"""
-    Database.run_migrations('upgrade', db_creds=read_all_db_creds())
+    db_creds = read_all_db_creds()
+    click.confirm(
+        "Will apply forward-migration on following databases: \n\n%s \n\nDo you want to continue (Y/N)" %
+        format_database_uris(db_creds), abort=True)
+    Database.run_migrations('upgrade', db_creds=db_creds)
 
 
 @main.command()
 def downgrade():
     """Rollbacks the last applied migrations"""
-    Database.run_migrations('downgrade', db_creds=read_all_db_creds())
+    db_creds = read_all_db_creds()
+    click.confirm(
+        "Will rollback last applied migration on following databases: \n\n%s \n\nDo you want to continue (Y/N)" %
+        format_database_uris(db_creds), abort=True)
+    Database.run_migrations('downgrade', db_creds=db_creds)
 
 
 @main.command()
@@ -105,5 +129,6 @@ def dump():
     if 'database_uri' in db_creds:
         database_uri = db_creds['database_uri']
     else:
-        database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % db_creds
+        database_uri = create_db_uri(db_creds)
+    click.confirm("Dumping schema from database: %s, and schema: %s" % (database_uri, db_schema), abort=True)
     Database.dump(database_uri, db_schema)
