@@ -7,34 +7,6 @@ import click
 from dbmigrate.database import Database
 from dbmigrate.migration_directory import MigrationDirectory
 
-"""
-Script to create migration file template, run the migrations, from the file generated.
-
-The script also tracks which migration has been run till now, and everytime runs only the remaining chain of the 
-migration graph. If there is nothing to migrate, the script does nothing
-
-The migration file should be in following format:
-
-FileStart>>
--- revision: 'revision'        # current revision
--- down_revision: 'revision'   # revision after which this file was created. Keep empty string ('') for 1st migration
-
--- upgrade      # Denoting all sql commands after this line are upgrade commands
-SQL Commands;   # CREATE TABLE, or ALTER TABLE, or DROP TABLE
-SQL Commands;
-SQL Commands;
-
--- downgrade    # Denoting all sql commands after this line are downgrade commands
-SQL Commands;   # DROP TABLE, or ALTER TABLe, or CREATE TABLE
-SQL Commands;
-SQL Commands;
-<<FileEnd
-
-NOTE: This script can't take care of conflicting migrations yet. So please make sure you always take a pull from 
-develop branch, before generating migration. Or even better would be to generate migration only on develop branch.
-
-"""
-
 
 def create_db_uri(db_creds):
     database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % db_creds
@@ -79,6 +51,12 @@ def read_all_db_creds():
 @click.group()
 @click.pass_context
 def main(ctx):
+    """
+    Script to create migration file template, run the migrations, from the file generated.
+
+    The script also tracks which migration has been run till now, and everytime runs only the remaining chain of the
+    migration graph. If there is nothing to migrate, the script does nothing
+    """
     pass
 
 

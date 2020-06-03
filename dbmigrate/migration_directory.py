@@ -16,6 +16,11 @@ class MigrationDirectory(object):
                 file_content = file.read()
                 revision = MigrationFile.read_revision_number(file_content)
                 down_revision = MigrationFile.read_revision_number(file_content, down=True)
+                if down_revision in upward_graph:
+                    existing_up_revision = upward_graph[down_revision]
+                    print("Found conflicting revision: %s and %s, branching from the same "
+                          "revision: %s" % (existing_up_revision, revision, down_revision))
+                    raise RuntimeError()
                 upward_graph[down_revision] = revision
 
         graph = []
