@@ -99,6 +99,7 @@ def downgrade():
 
 @main.command()
 def dump():
+    """Takes table structure dump for the given database and schema to schema.sql file"""
     db_creds = read_all_db_creds()[0]
     db_schema = db_creds['db_schema']
     if 'database_uri' in db_creds:
