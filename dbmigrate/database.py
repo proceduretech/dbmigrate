@@ -18,6 +18,8 @@ class Database(object):
 
     @classmethod
     def init_migration(cls, db_creds):
+        MigrationDirectory.create_if_not_exists()
+
         CREATE_MIGRATIONS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS migrations (
         version character varying not null,
         applied_at timestamp with time zone not null,

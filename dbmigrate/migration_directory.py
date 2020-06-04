@@ -8,6 +8,11 @@ schema_file_directory = 'db_migrations/'
 
 class MigrationDirectory(object):
     @staticmethod
+    def create_if_not_exists():
+        if not os.path.exists(migrations_directory):
+            os.makedirs(migrations_directory)
+
+    @staticmethod
     def read_migrations_graph():
         upward_graph = dict()
 
