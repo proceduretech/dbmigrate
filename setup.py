@@ -13,6 +13,8 @@ setuptools.setup(
         - Command to generate blank migration file
         - Command to initialize the migration one or more fresh databases
         - Command to apply the unapplied migrations on one or more databases.
+        - Command to rollback the last applied migration
+        - Command to dump the current table structure of the database
         
     This package takes care of generating a migration file in a specific template, which is understood by the package,
     to apply the migration. It's suggested to not generate a migration file manually, or tweak the migration file 
