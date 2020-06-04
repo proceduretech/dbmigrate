@@ -20,7 +20,7 @@ class Database(object):
     def init_migration(cls, db_creds):
         CREATE_MIGRATIONS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS migrations (
         version character varying not null,
-        applied_at timestamp with time zone not null
+        applied_at timestamp with time zone not null,
         rollbacked boolean);"""
 
         for db_cred in db_creds:
