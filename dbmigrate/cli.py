@@ -20,7 +20,7 @@ def format_database_uris(db_creds):
 
     database_uris = [("DB Schema", "Database URI"), ("=" * 9, "=" * 12)] + database_uris
 
-    db_uris = ["{:<20}{:<50}".format(*db_uri) for db_uri in database_uris]
+    db_uris = ["{:<50}{:<50}".format(*db_uri) for db_uri in database_uris]
     return "\n".join(db_uris)
 
 
@@ -61,13 +61,13 @@ def main(ctx):
 
 
 @main.command()
-@click.option('--name', default=None,
-              help="Give short name (space, or underscore separated) for the migration file to be generated, "
-                   "while using 'touch' command")
+@click.argument('name', default=None, nargs=-1)
 def touch(name):
     """Creates a blank migration file"""
     if not name:
-        click.echo("Please pass a short name for migration file to be generated")
+        click.echo(
+            "Please pass a short name as argument, for migration file to be generated, either underscore or space "
+            "separated words")
         exit(1)
     migration_description = "_".join(name)
     MigrationDirectory.create_blank_migration_file(migration_description)

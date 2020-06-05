@@ -1,6 +1,7 @@
 import datetime
 import subprocess
 
+import click
 import psycopg2
 
 from dbmigrate.migration_directory import MigrationDirectory
@@ -29,7 +30,7 @@ class Database(object):
             database_uri = "postgres://%(db_user)s:%(db_password)s@%(db_host)s:%(db_port)s/%(db_name)s" % db_cred
             schema = db_cred.get('db_schema')
 
-            print("Running init_migration on database: %s, and schema: %s" % (database_uri, schema))
+            click.confirm("Running init_migration on database: %s, and schema: %s" % (database_uri, schema), abort=True)
 
             conn = cls.new_connection(database_uri, schema)
             try:
@@ -41,14 +42,14 @@ class Database(object):
 
     @classmethod
     def fetch_last_applied_migration(cls, database_uri, schema):
-        FETCH_LAST_MIGRATION_QUERY = "SELECT version FROM migrations WHERE rollbacked = %s ORDER BY applied_at " \
+        FETCH_LAST_MIGRATION_QUERY = "SELECT version FROM migrations WHERE rollbacked is not %s ORDER BY applied_at " \
                                      "DESC LIMIT 1;"
 
         conn = cls.new_connection(database_uri, schema)
         try:
             with conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(FETCH_LAST_MIGRATION_QUERY, (False,))
+                    cursor.execute(FETCH_LAST_MIGRATION_QUERY, (True,))
                     last_version = cursor.fetchone()
         finally:
             conn.close()
